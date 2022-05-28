@@ -1,3 +1,4 @@
 fn main() {
-    println!("Hello, world!");
+    let b = reversi::Board::new(8, 8);
+    println!("{}", b.to_string())
 }
