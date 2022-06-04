@@ -1,3 +1,4 @@
+use std::ops;
 use std::vec::Vec;
 
 #[derive(Clone, Copy)]
@@ -17,6 +18,17 @@ pub struct Board {
 pub struct Point {
     x: usize,
     y: usize,
+}
+
+impl ops::Add<Point> for Point {
+    type Output = Point;
+    fn add(self, other: Point) -> Point {
+        let p = Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        };
+        return p;
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -98,6 +110,10 @@ impl Board {
         let idx = point.y * self.height + point.x;
         self.data[idx] = cell;
 
+        Ok(())
+    }
+
+    fn check_can_placable(&self, point: Point, cell: Cell) -> Result<(), OutOfBoard> {
         Ok(())
     }
 }
