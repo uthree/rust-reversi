@@ -204,7 +204,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
         let mut count = 0;
         for y in 0..(WIDTH - 1) {
             for x in 0..(HEIGHT - 1) {
-                if &self.data[y][x] == color.into() {
+                if self.data[y][x] == color.into() {
                     count += 1
                 }
             }
