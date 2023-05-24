@@ -31,8 +31,8 @@ where
     type Output = Vector2<T>;
     fn mul(self, scaler: T) -> Self::Output {
         Vector2 {
-            x: self.x * scaler.clone(),
-            y: self.y * scaler.clone(),
+            x: self.x * scaler,
+            y: self.y * scaler,
         }
     }
 }
@@ -130,7 +130,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
         for d in VALID_DIRECTIONS {
             let mut flag_opponent_color = false;
             for s in 1..std::cmp::max(WIDTH, HEIGHT) as i8 {
-                let p = position.clone() + d.clone() * s;
+                let p = position + d * s;
                 if !Self::check_valid_position(p) {
                     break;
                 }
@@ -140,14 +140,14 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
                 } else if c == color.opponent().into() {
                     flag_opponent_color = true;
                 } else if c == color.into() && flag_opponent_color {
-                    result.push(d.clone());
+                    result.push(d);
                     break;
                 } else if c == Cell::None {
                     break;
                 }
             }
         }
-        return result;
+        result
     }
 
     pub fn place(&mut self, color: Color, position: Vector2<i8>) -> Result<(), &str> {
@@ -155,10 +155,10 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
             return Err("Can't place here!");
         }
         let dirs = self.placeable_directions(color, position);
-        self.data[position.clone().y as usize][position.clone().x as usize] = color.into();
+        self.data[position.y as usize][position.x as usize] = color.into();
         for d in dirs {
             for s in 1..(std::cmp::max(WIDTH, HEIGHT) as i8) {
-                let p = position.clone() + d * s;
+                let p = position + d * s;
                 if !Self::check_valid_position(p) {
                     break;
                 }
@@ -172,7 +172,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
     }
 
     pub fn check_placeable(&self, color: Color, position: Vector2<i8>) -> bool {
-        Self::check_valid_position(position) && self.placeable_directions(color, position).len() > 0
+        Self::check_valid_position(position) && !self.placeable_directions(color, position).is_empty()
     }
 
     pub fn check_placeable_somewhere(&self, color: Color) -> bool {
@@ -183,7 +183,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
                 }
             }
         }
-        return false;
+        false
     }
 
     pub fn placeable_positions(&self, color: Color) -> Vec<Vector2<i8>> {
@@ -195,7 +195,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
                 }
             }
         }
-        return result;
+        result
     }
 
     fn check_valid_position(position: Vector2<i8>) -> bool {
@@ -219,7 +219,7 @@ pub trait Player<const WIDTH: usize, const HEIGHT: usize> {
     fn tell(&mut self, content: String) {
         println!("{}", content);
     }
-    fn tell_color(&mut self, color: Color) {}
+    fn tell_color(&mut self, _color: Color) {}
     fn decide_position(&mut self, board: &Board<WIDTH, HEIGHT>) -> Vector2<i8>;
 }
 
@@ -267,7 +267,7 @@ impl<'a, const WIDTH: usize, const HEIGHT: usize> Game<'a, WIDTH, HEIGHT> {
 
     fn broadcast(&mut self, content: String) {
         self.player1.tell(content.clone());
-        self.player2.tell(content.clone());
+        self.player2.tell(content);
     }
 }
 
