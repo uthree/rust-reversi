@@ -1,3 +1,5 @@
+use rand::seq::IteratorRandom;
+
 #[derive(Clone, Copy)]
 pub struct Vector2<T>
 where
@@ -174,8 +176,8 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
     }
 
     pub fn check_placeable_somewhere(&self, color: Color) -> bool {
-        for x in 0..(WIDTH - 1) {
-            for y in 0..(HEIGHT - 1) {
+        for x in 0..WIDTH {
+            for y in 0..HEIGHT {
                 if self.check_placeable(color, Position::new(x as i8, y as i8)) {
                     return true;
                 }
@@ -186,8 +188,8 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
 
     pub fn placeable_positions(&self, color: Color) -> Vec<Vector2<i8>> {
         let mut result = vec![];
-        for y in 0..(WIDTH - 1) {
-            for x in 0..(HEIGHT - 1) {
+        for y in 0..WIDTH {
+            for x in 0..HEIGHT {
                 if self.check_placeable(color, Position::new(x as i8, y as i8)) {
                     result.push(Position::new(x as i8, y as i8));
                 }
@@ -214,12 +216,14 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
 }
 
 pub trait Player<const WIDTH: usize, const HEIGHT: usize> {
-    fn tell(&mut self, content: String) {}
+    fn tell(&mut self, content: String) {
+        println!("{}", content);
+    }
     fn tell_color(&mut self, color: Color) {}
     fn decide_position(&mut self, board: &Board<WIDTH, HEIGHT>) -> Vector2<i8>;
 }
 
-struct Game<'a, const WIDTH: usize, const HEIGHT: usize> {
+pub struct Game<'a, const WIDTH: usize, const HEIGHT: usize> {
     player1: &'a mut dyn Player<WIDTH, HEIGHT>,
     player2: &'a mut dyn Player<WIDTH, HEIGHT>,
     board: Board<WIDTH, HEIGHT>,
@@ -243,15 +247,17 @@ impl<'a, const WIDTH: usize, const HEIGHT: usize> Game<'a, WIDTH, HEIGHT> {
         self.player2.tell_color(Color::White);
         loop {
             if self.board.check_placeable_somewhere(Color::Black) {
+                self.player1.tell(self.board.visualize());
                 let pos = self.player1.decide_position(&self.board);
                 self.board.place(Color::Black, pos).unwrap();
             }
             if self.board.check_placeable_somewhere(Color::White) {
-                let pos = self.player1.decide_position(&self.board);
+                self.player2.tell(self.board.visualize());
+                let pos = self.player2.decide_position(&self.board);
                 self.board.place(Color::White, pos).unwrap();
             }
             if !self.board.check_placeable_somewhere(Color::Black)
-                && self.board.check_placeable_somewhere(Color::White)
+                && !self.board.check_placeable_somewhere(Color::White)
             {
                 break;
             }
@@ -262,5 +268,33 @@ impl<'a, const WIDTH: usize, const HEIGHT: usize> Game<'a, WIDTH, HEIGHT> {
     fn broadcast(&mut self, content: String) {
         self.player1.tell(content.clone());
         self.player2.tell(content.clone());
+    }
+}
+
+pub struct RandomPlayer<const WIDTH: usize, const HEIGHT: usize> {
+    color: Color,
+}
+
+impl<const WIDTH: usize, const HEIGHT: usize> Player<WIDTH, HEIGHT>
+    for RandomPlayer<WIDTH, HEIGHT>
+{
+    fn decide_position(&mut self, board: &Board<WIDTH, HEIGHT>) -> Vector2<i8> {
+        *board
+            .placeable_positions(self.color)
+            .iter()
+            .choose(&mut rand::thread_rng())
+            .unwrap()
+    }
+
+    fn tell_color(&mut self, color: Color) {
+        self.color = color;
+    }
+}
+
+impl<const WIDTH: usize, const HEIGHT: usize> RandomPlayer<WIDTH, HEIGHT> {
+    pub fn new() -> Self {
+        RandomPlayer {
+            color: Color::Black,
+        }
     }
 }

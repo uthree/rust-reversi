@@ -1,15 +1,10 @@
 mod reversi;
 
-use crate::reversi::{Board, Color, Position};
+use crate::reversi::{Game, RandomPlayer};
 
 fn main() {
-    let mut board = Board::<8, 8>::new();
-    loop {
-        board.place(Color::Black, board.placeable_positions(Color::Black)[0]);
-        println!("{}", board.visualize());
-
-        board.place(Color::White, board.placeable_positions(Color::White)[0]);
-
-        println!("{}", board.visualize());
-    }
+    let mut p1 = RandomPlayer::<8, 8>::new();
+    let mut p2 = RandomPlayer::<8, 8>::new();
+    let mut game = Game::<8, 8>::new(&mut p1, &mut p2);
+    game.run();
 }
