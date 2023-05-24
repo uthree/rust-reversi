@@ -111,9 +111,9 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
             out += &(i + 1).to_string();
             for cell in line {
                 match cell {
-                    Cell::None => out += ".",
-                    Cell::White => out += "w",
-                    Cell::Black => out += "b",
+                    Cell::None => out += "\x1b\x5b0m\x1b\x5b42m\x1b\x5b37m.\x1b\x5b0m",
+                    Cell::White => out += "\x1b\x5b0m\x1b\x5b42m\x1b\x5b37m●\x1b\x5b0m",
+                    Cell::Black => out += "\x1b\x5b0m\x1b\x5b42m\x1b\x5b30m●\x1b\x5b0m",
                 }
             }
             out += "\n";
@@ -172,7 +172,8 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
     }
 
     pub fn check_placeable(&self, color: Color, position: Vector2<i8>) -> bool {
-        Self::check_valid_position(position) && !self.placeable_directions(color, position).is_empty()
+        Self::check_valid_position(position)
+            && !self.placeable_directions(color, position).is_empty()
     }
 
     pub fn check_placeable_somewhere(&self, color: Color) -> bool {
@@ -216,9 +217,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
 }
 
 pub trait Player<const WIDTH: usize, const HEIGHT: usize> {
-    fn tell(&mut self, content: String) {
-        println!("{}", content);
-    }
+    fn tell(&mut self, content: String) {}
     fn tell_color(&mut self, _color: Color) {}
     fn decide_position(&mut self, board: &Board<WIDTH, HEIGHT>) -> Vector2<i8>;
 }
@@ -263,6 +262,19 @@ impl<'a, const WIDTH: usize, const HEIGHT: usize> Game<'a, WIDTH, HEIGHT> {
             }
         }
         self.broadcast("Game End!".to_string());
+        let black_count = self.board.count(Color::Black);
+        let white_count = self.board.count(Color::White);
+        match &black_count.cmp(&white_count) {
+            std::cmp::Ordering::Less => {
+                self.broadcast("White wins!".to_string());
+            }
+            std::cmp::Ordering::Greater => {
+                self.broadcast("Black wins!".to_string());
+            }
+            std::cmp::Ordering::Equal => {
+                self.broadcast("Draw!".to_string());
+            }
+        }
     }
 
     fn broadcast(&mut self, content: String) {
@@ -294,6 +306,74 @@ impl<const WIDTH: usize, const HEIGHT: usize> Player<WIDTH, HEIGHT>
 impl<const WIDTH: usize, const HEIGHT: usize> RandomPlayer<WIDTH, HEIGHT> {
     pub fn new() -> Self {
         RandomPlayer {
+            color: Color::Black,
+        }
+    }
+}
+
+pub struct ManualPlayer<const WIDTH: usize, const HEIGHT: usize> {
+    color: Color,
+}
+
+impl<const WIDTH: usize, const HEIGHT: usize> Player<WIDTH, HEIGHT>
+    for ManualPlayer<WIDTH, HEIGHT>
+{
+    fn decide_position(&mut self, board: &Board<WIDTH, HEIGHT>) -> Vector2<i8> {
+        println!("{}", board.visualize());
+        loop {
+            let mut buffer = String::new();
+            std::io::stdin()
+                .read_line(&mut buffer)
+                .expect("Input error");
+            if buffer.len() >= 2 {
+                let chars = buffer.chars().collect::<Vec<char>>();
+                let first_char = chars[0];
+                let second_char = chars[1];
+                match first_char {
+                    'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' => {
+                        let x = "abcdefgh"
+                            .chars()
+                            .enumerate()
+                            .find(|&r| r.1 == first_char)
+                            .unwrap()
+                            .0;
+                        let parse_result = second_char.to_string().parse::<i8>();
+                        if parse_result.is_err() {
+                            continue;
+                        };
+                        let y = parse_result.unwrap() - 1;
+                        if y >= HEIGHT as i8 {
+                            continue;
+                        }
+                        let pos = Position::new(x as i8, y);
+                        if !board.check_placeable(self.color, pos) {
+                            println!("You can't place here!");
+                            continue;
+                        }
+                        return pos;
+                    }
+                    _ => {
+                        println!("Invalid input");
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    fn tell_color(&mut self, color: Color) {
+        //println!("Your color is {}", color);
+        self.color = color;
+    }
+
+    fn tell(&mut self, content: String) {
+        println!("{}", content);
+    }
+}
+
+impl<const WIDTH: usize, const HEIGHT: usize> ManualPlayer<WIDTH, HEIGHT> {
+    pub fn new() -> Self {
+        ManualPlayer {
             color: Color::Black,
         }
     }
