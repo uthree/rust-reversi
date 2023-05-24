@@ -199,6 +199,18 @@ impl<const WIDTH: usize, const HEIGHT: usize> Board<WIDTH, HEIGHT> {
     fn check_valid_position(position: Vector2<i8>) -> bool {
         position.x >= 0 && position.y >= 0 && position.x < WIDTH as i8 && position.y < HEIGHT as i8
     }
+
+    pub fn count(&self, color: Color) -> usize {
+        let mut count = 0;
+        for y in 0..(WIDTH - 1) {
+            for x in 0..(HEIGHT - 1) {
+                if &self.data[y][x] == color.into() {
+                    count += 1
+                }
+            }
+        }
+        count
+    }
 }
 
 pub trait Player<const WIDTH: usize, const HEIGHT: usize> {
