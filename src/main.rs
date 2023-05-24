@@ -1,3 +1,4 @@
+mod ai;
 mod reversi;
 
 use crate::reversi::{Game, ManualPlayer, RandomPlayer};
