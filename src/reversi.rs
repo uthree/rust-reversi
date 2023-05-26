@@ -69,7 +69,7 @@ impl From<Color> for Cell {
 }
 
 impl Color {
-    fn opponent(&self) -> Color {
+    pub fn opponent(&self) -> Color {
         match self {
             Color::White => Color::Black,
             Color::Black => Color::White,
@@ -77,8 +77,9 @@ impl Color {
     }
 }
 
+#[derive(Clone)]
 pub struct Board<const WIDTH: usize, const HEIGHT: usize> {
-    data: [[Cell; WIDTH]; HEIGHT],
+    pub data: [[Cell; WIDTH]; HEIGHT],
 }
 
 const VALID_DIRECTIONS: [Vector2<i8>; 8] = [
