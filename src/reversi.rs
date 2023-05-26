@@ -363,7 +363,11 @@ impl<const WIDTH: usize, const HEIGHT: usize> Player<WIDTH, HEIGHT>
     }
 
     fn tell_color(&mut self, color: Color) {
-        //println!("Your color is {}", color);
+        if color == Color::Black {
+            println!("Your color is black");
+        } else {
+            println!("Your color is white");
+        }
         self.color = color;
     }
 
