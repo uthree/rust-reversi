@@ -1,12 +1,12 @@
-mod ai;
 mod reversi;
+mod vector2;
 
-use crate::ai::MinMaxPlayer;
-use crate::reversi::{Game, ManualPlayer, RandomPlayer};
+use reversi::{Board, Color, Position};
 
 fn main() {
-    let mut p1 = ManualPlayer::<8, 8>::new();
-    let mut p2 = MinMaxPlayer::<8, 8>::new();
-    let mut game = Game::<8, 8>::new(&mut p1, &mut p2);
-    game.run();
+    let board = Board::new();
+    println!(
+        "{}",
+        board.visualize_for_tui(Color::Black, Position::new(0, 0))
+    );
 }
