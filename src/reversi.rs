@@ -83,7 +83,7 @@ impl Board {
 
     pub fn visualize(&self) -> String {
         let mut out = "".to_string();
-        for (i, line) in self.data.iter().enumerate() {
+        for line in self.data.iter() {
             for cell in line {
                 match cell {
                     CellState::Empty => out += "\x1b\x5b0m\x1b\x5b42m\x1b\x5b37m \x1b\x5b0m",
@@ -211,4 +211,25 @@ impl Board {
         }
         false
     }
+}
+
+pub trait Player {
+    fn decide_position(&self, color: Color, board: &Board) -> Vector2<isize>;
+}
+
+pub struct Game<'a> {
+    board: Board,
+    player_1: &'a dyn Player,
+    player_2: &'a dyn Player,
+}
+
+impl<'a> Game<'a> {
+    fn new(player_1: &'a dyn Player, player_2: &'a dyn Player) -> Self {
+        Game {
+            board: Board::new(),
+            player_1,
+            player_2,
+        }
+    }
+    fn run(&mut self) {}
 }
